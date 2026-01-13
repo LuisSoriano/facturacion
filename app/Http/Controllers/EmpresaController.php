@@ -136,6 +136,83 @@ class EmpresaController extends Controller
         }
     }
 
+    public function getCuis(Empresa $empresa): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $config = $empresa->configuracionSiat;
+            if (!$config) {
+                return response()->json(['status' => 'error', 'message' => 'Configuración SIA no encontrada']);
+            }
+
+            $url = $config->url_codigos ?? config('siat.urls.codigos');
+            $token = $config->token_api ?? config('siat.token');
+
+            // Configurar SoapClient con header apikey
+            $options = [
+                'trace' => true,
+                'exceptions' => true,
+                'connection_timeout' => 10,
+                'stream_context' => stream_context_create([
+                    'http' => [
+                        'header' => 'apikey: ' . $token
+                    ]
+                ])
+            ];
+
+            $client = new \SoapClient($url, $options);
+
+            // Parámetros para solicitar CUIS
+            $params = [
+                'SolicitudCuis' => [
+                    'codigoAmbiente' => $config->codigo_ambiente ?? config('siat.codigo_ambiente'),
+                    'codigoModalidad' => $config->codigo_modalidad ?? config('siat.modalidad'),
+                    'codigoPuntoVenta' => $config->codigo_punto_venta ?? config('siat.punto_venta'),
+                    'codigoSistema' => $config->codigo_sistema ?? config('siat.codigo_sistema'),
+                    'codigoSucursal' => $config->codigo_sucursal ?? config('siat.sucursal'),
+                    'nit' => $config->nit ?? config('siat.nit'),
+                ]
+            ];
+
+            // Llamar a cuis
+            $response = $client->cuis($params);
+
+            // Extraer el CUIS de la respuesta
+            $cuis = $response->RespuestaCuis->codigo ?? null;
+            $fechaVigencia = $response->RespuestaCuis->fechaVigencia ?? null;
+            $transaccion = $response->RespuestaCuis->transaccion ?? false;
+
+            if ($cuis && $transaccion) {
+                $currentCuis = $config->cuis;
+                return response()->json([
+                    'status' => 'success',
+                    'cuis' => $cuis,
+                    'fechaVigencia' => $fechaVigencia,
+                    'current' => $currentCuis,
+                    'match' => $cuis === $currentCuis
+                ]);
+            } else {
+                // Si transaccion es false pero hay CUIS, significa que ya existe uno vigente
+                if ($cuis && !$transaccion) {
+                    $currentCuis = $config->cuis;
+                    return response()->json([
+                        'status' => 'success',
+                        'cuis' => $cuis,
+                        'fechaVigencia' => $fechaVigencia,
+                        'current' => $currentCuis,
+                        'match' => $cuis === $currentCuis,
+                        'message' => 'CUIS ya existe y está vigente'
+                    ]);
+                } else {
+                    return response()->json(['status' => 'error', 'message' => 'No se pudo obtener el CUIS']);
+                }
+            }
+        } catch (\SoapFault $e) {
+            return response()->json(['status' => 'error', 'message' => 'Error SOAP: ' . $e->getMessage()]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => 'Error: ' . $e->getMessage()]);
+        }
+    }
+
     /**
      * Remove the specified resource from storage.
      */

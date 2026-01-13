@@ -164,6 +164,7 @@
         <x-slot name='footer'>
             <button type="submit" class="btn btn-primary">Actualizar Configuración SIA</button>
             <button type="button" id="test-connection-btn" class="btn btn-secondary ms-2">Probar Conexión</button>
+            <button type="button" id="get-cuis-btn" class="btn btn-info ms-2">Obtener CUIS</button>
         </x-slot>
         @endcan
 
@@ -213,6 +214,67 @@ document.getElementById('test-connection-btn').addEventListener('click', functio
     .finally(() => {
         btn.disabled = false;
         btn.innerHTML = 'Probar Conexión';
+    });
+});
+
+document.getElementById('get-cuis-btn').addEventListener('click', function() {
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Obteniendo CUIS...';
+
+    fetch('{{ route("empresa.getCuis", $empresa) }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const cuisInput = document.getElementById('cuis');
+            const currentCuis = cuisInput.value;
+
+            if (data.match) {
+                Swal.fire({
+                    icon: 'info',
+                    title: 'CUIS Vigente',
+                    text: `El CUIS actual (${data.cuis}) está vigente hasta ${data.fechaVigencia}`,
+                });
+            } else {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'CUIS Obtenido',
+                    text: `Nuevo CUIS: ${data.cuis}${data.fechaVigencia ? ` (Vigente hasta: ${data.fechaVigencia})` : ''}`,
+                    showCancelButton: true,
+                    confirmButtonText: 'Actualizar CUIS',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        cuisInput.value = data.cuis;
+                        // Aquí podrías agregar lógica para guardar automáticamente
+                        Swal.fire('Actualizado', 'El CUIS ha sido actualizado en el formulario.', 'success');
+                    }
+                });
+            }
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error al obtener CUIS',
+                text: data.message,
+            });
+        }
+    })
+    .catch(error => {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Error al obtener CUIS: ' + error.message,
+        });
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = 'Obtener CUIS';
     });
 });
 </script>
