@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateEmpresaRequest;
+use App\Http\Requests\UpdateConfiguracionSiatRequest;
 use App\Models\Empresa;
+use App\Models\ConfiguracionSiat;
 use App\Models\Moneda;
 use App\Services\ActivityLogService;
 use App\Services\EmpresaService;
@@ -20,7 +22,7 @@ class EmpresaController extends Controller
      */
     public function index(): View
     {
-        $empresa = Empresa::first();
+        $empresa = Empresa::with('configuracionSiat')->first();
         $monedas = Moneda::all();
         return view('empresa.index', compact('empresa', 'monedas'));
     }
@@ -70,6 +72,67 @@ class EmpresaController extends Controller
         } catch (Throwable $e) {
             Log::error('Error al editar la empresa', ['error' => $e->getMessage()]);
             return redirect()->route('empresa.index')->with('error', 'Ups, algo falló');
+        }
+    }
+
+    public function updateSiat(UpdateConfiguracionSiatRequest $request, Empresa $empresa): RedirectResponse
+    {
+        try {
+            $empresa->configuracionSiat()->updateOrCreate(
+                ['empresa_id' => $empresa->id],
+                $request->validated()
+            );
+            ActivityLogService::log('Edición de configuración SIA', 'ConfiguracionSiat', $request->validated());
+            return redirect()->route('empresa.index')->with('success', 'Configuración SIA editada');
+        } catch (Throwable $e) {
+            Log::error('Error al editar la configuración SIA', ['error' => $e->getMessage()]);
+            return redirect()->route('empresa.index')->with('error', 'Ups, algo falló');
+        }
+    }
+
+    public function testSiatConnection(Empresa $empresa): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $config = $empresa->configuracionSiat;
+            if (!$config) {
+                return response()->json(['status' => 'error', 'message' => 'Configuración SIA no encontrada']);
+            }
+
+            $url = $config->url_sincronizacion ?? config('siat.urls.sincronizacion');
+            $token = $config->token_api ?? config('siat.token');
+
+            // Configurar SoapClient con header apikey
+            $options = [
+                'trace' => true,
+                'exceptions' => true,
+                'connection_timeout' => 10,
+                'stream_context' => stream_context_create([
+                    'http' => [
+                        'header' => 'apikey: ' . $token
+                    ]
+                ])
+            ];
+
+            $client = new \SoapClient($url, $options);
+
+            // Usar verificarComunicacion que requiere autenticación básica
+            $response = $client->verificarComunicacion();
+
+            // Verificar que la respuesta indique comunicación exitosa
+            if (isset($response->return->transaccion) && $response->return->transaccion == true) {
+                // Verificar código de respuesta 926 (COMUNICACION EXITOSA)
+                if (isset($response->return->mensajesList->codigo) && $response->return->mensajesList->codigo == 926) {
+                    return response()->json(['status' => 'success', 'message' => 'Conectado - Comunicación exitosa']);
+                } else {
+                    return response()->json(['status' => 'error', 'message' => 'Desconectado - Código de respuesta inválido']);
+                }
+            } else {
+                return response()->json(['status' => 'error', 'message' => 'Desconectado - Transacción fallida']);
+            }
+        } catch (\SoapFault $e) {
+            return response()->json(['status' => 'error', 'message' => 'Desconectado - Datos incorrectos: ' . $e->getMessage()]);
+        } catch (\Exception $e) {
+            return response()->json(['status' => 'error', 'message' => 'Desconectado: ' . $e->getMessage()]);
         }
     }
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Empresa extends Model
 {
@@ -14,5 +15,10 @@ class Empresa extends Model
     public function moneda(): BelongsTo
     {
         return $this->belongsTo(Moneda::class);
+    }
+
+    public function configuracionSiat(): HasOne
+    {
+        return $this->hasOne(ConfiguracionSiat::class);
     }
 }

@@ -82,9 +82,138 @@
 
     </x-forms.template>
 
+    <hr class="my-5">
+
+    <h2 class="mt-4 text-center">CONFIGURACIÓN SIA</h2>
+
+    <x-forms.template :action="route('empresa.updateSiat',['empresa' => $empresa])" method='post' patch='true'>
+
+        <div class="row g-4">
+
+            <div class="col-md-6">
+                <x-forms.input id="nit" required='true' :defaultValue='$empresa->configuracionSiat?->nit' />
+            </div>
+
+            <div class="col-md-6">
+                <x-forms.input id="razon_social" required='true' :defaultValue='$empresa->configuracionSiat?->razon_social' />
+            </div>
+
+            <div class="col-md-6">
+                <x-forms.input id="codigo_sistema" required='true' :defaultValue='$empresa->configuracionSiat?->codigo_sistema' />
+            </div>
+
+            <div class="col-md-6">
+                <x-forms.input id="nombre_sistema" required='true' :defaultValue='$empresa->configuracionSiat?->nombre_sistema' />
+            </div>
+
+            <div class="col-md-6">
+                <label for="codigo_ambiente" class="form-label">Código de Ambiente:</label>
+                <select name="codigo_ambiente" id="codigo_ambiente" class="form-select">
+                    <option value="1" {{ $empresa->configuracionSiat?->codigo_ambiente == 1 ? 'selected' : '' }}>Producción</option>
+                    <option value="2" {{ $empresa->configuracionSiat?->codigo_ambiente == 2 ? 'selected' : '' }}>Pruebas</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <label for="codigo_modalidad" class="form-label">Código de Modalidad:</label>
+                <select name="codigo_modalidad" id="codigo_modalidad" class="form-select">
+                    <option value="1" {{ $empresa->configuracionSiat?->codigo_modalidad == 1 ? 'selected' : '' }}>Electrónica en Línea</option>
+                    <option value="2" {{ $empresa->configuracionSiat?->codigo_modalidad == 2 ? 'selected' : '' }}>Computarizada en Línea</option>
+                </select>
+            </div>
+
+            <div class="col-md-6">
+                <x-forms.input id="codigo_sucursal" required='true' :defaultValue='$empresa->configuracionSiat?->codigo_sucursal' type='number' />
+            </div>
+
+            <div class="col-md-6">
+                <x-forms.input id="codigo_punto_venta" required='true' :defaultValue='$empresa->configuracionSiat?->codigo_punto_venta' type='number' />
+            </div>
+
+            <div class="col-md-6">
+                <x-forms.input id="cuis" :defaultValue='$empresa->configuracionSiat?->cuis' />
+            </div>
+
+            <div class="col-md-6">
+                <x-forms.input id="token_api" :defaultValue='$empresa->configuracionSiat?->token_api' />
+            </div>
+
+            <div class="col-md-12">
+                <h5>URLs de Servicios SIA</h5>
+            </div>
+
+            <div class="col-md-6">
+                <x-forms.input id="url_sincronizacion" :defaultValue='$empresa->configuracionSiat?->url_sincronizacion' labelText="URL Sincronización" />
+            </div>
+
+            <div class="col-md-6">
+                <x-forms.input id="url_operaciones" :defaultValue='$empresa->configuracionSiat?->url_operaciones' labelText="URL Operaciones" />
+            </div>
+
+            <div class="col-md-6">
+                <x-forms.input id="url_codigos" :defaultValue='$empresa->configuracionSiat?->url_codigos' labelText="URL Códigos" />
+            </div>
+
+            <div class="col-md-6">
+                <x-forms.input id="url_facturacion" :defaultValue='$empresa->configuracionSiat?->url_facturacion' labelText="URL Facturación" />
+            </div>
+
+        </div>
+
+        @can('update-empresa')
+        <x-slot name='footer'>
+            <button type="submit" class="btn btn-primary">Actualizar Configuración SIA</button>
+            <button type="button" id="test-connection-btn" class="btn btn-secondary ms-2">Probar Conexión</button>
+        </x-slot>
+        @endcan
+
+    </x-forms.template>
+
 
 </div>
 @endsection
 
 @push('js')
+<script>
+document.getElementById('test-connection-btn').addEventListener('click', function() {
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Probando...';
+
+    fetch('{{ route("empresa.testSiatConnection", $empresa) }}', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Conectado',
+                text: data.message,
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Desconectado',
+                text: data.message,
+            });
+        }
+    })
+    .catch(error => {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Error al probar la conexión: ' + error.message,
+        });
+    })
+    .finally(() => {
+        btn.disabled = false;
+        btn.innerHTML = 'Probar Conexión';
+    });
+});
+</script>
 @endpush

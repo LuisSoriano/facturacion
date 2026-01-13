@@ -60,6 +60,8 @@ Route::group(['middleware' => 'auth', 'prefix' => 'admin'], function () {
     Route::resource('kardex', KardexController::class)->only('index');
     Route::resource('kardexServicio', KardexServicioController::class)->only('index');
     Route::resource('empresa', EmpresaController::class)->only('index', 'update');
+    Route::patch('empresa/{empresa}/siat', [EmpresaController::class, 'updateSiat'])->name('empresa.updateSiat');
+    Route::post('empresa/{empresa}/test-siat-connection', [EmpresaController::class, 'testSiatConnection'])->name('empresa.testSiatConnection');
     Route::resource('empleados', EmpleadoController::class)->except('show');
     Route::resource('cajas', CajaController::class)->except('edit', 'update', 'show');
     Route::resource('movimientos', MovimientoController::class)->except('show', 'edit', 'update', 'destroy');
