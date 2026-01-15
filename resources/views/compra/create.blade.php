@@ -212,7 +212,7 @@
                                                 <span>{{$empresa->moneda->simbolo}}</span>
                                             </th>
                                         </tr>
-                                        <tr>
+                                        <tr hidden>
                                             <th colspan="5">{{$empresa->abreviatura_impuesto}} %</th>
                                             <th colspan="2">
                                                 <input type="hidden" name="impuesto" value="0" id="inputImpuesto">
@@ -251,7 +251,7 @@
             <!--Botones--->
             <div class="col-12 mt-4 text-center">
                 <button type="submit" class="btn btn-success" id="guardar">
-                    Realizar compra</button>
+                    Registrar Compra</button>
             </div>
 
         </div>

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreCaracteristicaRequest;
+use App\Http\Requests\StoreMarcaRequest;
 use App\Http\Requests\UpdateMarcaRequest;
 use App\Models\Caracteristica;
 use App\Models\Marca;
@@ -42,12 +42,14 @@ class marcaController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreCaracteristicaRequest $request): RedirectResponse
+    public function store(StoreMarcaRequest $request): RedirectResponse
     {
         try {
             DB::beginTransaction();
             $caracteristica = Caracteristica::create($request->validated());
-            $caracteristica->marca()->create([]);
+            Marca::create([
+                'caracteristica_id' => $caracteristica->id
+            ]);
             DB::commit();
 
             ActivityLogService::log('Creación de marca', 'Marcas', $request->validated());
@@ -55,7 +57,7 @@ class marcaController extends Controller
         } catch (Throwable $e) {
             DB::rollBack();
             Log::error("Error al crear la marca", ['error' => $e->getMessage()]);
-            return redirect()->route('marcas.index')->with('error', 'Ups, algo falló');
+            return redirect()->back()->with('error', 'Error al registrar la marca: ' . $e->getMessage());
         }
     }
 

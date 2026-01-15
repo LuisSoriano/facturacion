@@ -19,6 +19,25 @@
         <li class="breadcrumb-item active">Crear Marca</li>
     </ol>
 
+    @if ($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <strong>¡Error de validación!</strong>
+        <ul class="mb-0">
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
+    @if (session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
     <div class="card">
         <form action="{{ route('marcas.store') }}" method="post">
             @csrf
@@ -30,6 +49,14 @@
                         <label for="nombre" class="form-label">Nombre:</label>
                         <input type="text" name="nombre" id="nombre" class="form-control" value="{{old('nombre')}}">
                         @error('nombre')
+                        <small class="text-danger">{{'*'.$message}}</small>
+                        @enderror
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="codigosin" class="form-label">Código SIN:</label>
+                        <input type="text" name="codigosin" id="codigosin" class="form-control" value="{{old('codigosin')}}">
+                        @error('codigosin')
                         <small class="text-danger">{{'*'.$message}}</small>
                         @enderror
                     </div>
