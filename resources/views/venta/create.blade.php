@@ -127,7 +127,7 @@
                                     <label for="precio" class="col-form-label col-4">
                                         Precio:</label>
                                     <div class="col-8">
-                                        <input disabled id="precio"
+                                        <input id="precio"
                                             type="number" class="form-control"
                                             step="any">
                                     </div>
@@ -141,6 +141,11 @@
                                 Cantidad:</label>
                             <input type="number" id="cantidad"
                                 class="form-control">
+                        </div>
+                        <!-----Descuento---->
+                        <div class="col-md-6">
+                            <label for="descuento" class="form-label">Descuento:</label>
+                            <input type="number" name="descuento" id="descuento" class="form-control">
                         </div>
 
                         <!-----botón para agregar--->
@@ -159,13 +164,14 @@
                                             <th class="text-white">Presentación</th>
                                             <th class="text-white">Cantidad</th>
                                             <th class="text-white">Precio</th>
+                                            <th class="text-white">Descuento</th>
                                             <th class="text-white">Subtotal</th>
                                             <th></th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <th></th>
+                                            <td></td>
                                             <td></td>
                                             <td></td>
                                             <td></td>
@@ -175,7 +181,7 @@
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <th colspan="4">Sumas</th>
+                                            <th colspan="5">Sumas</th>
                                             <th colspan="2">
                                                 <input type="hidden" name="subtotal"
                                                     value="0"
@@ -185,7 +191,17 @@
                                             </th>
                                         </tr>
                                         <tr>
-                                            <th colspan="4">
+                                            <th colspan="5">Total Descuento</th>
+                                            <th colspan="2">
+                                                <input type="hidden" name="total_descuento"
+                                                    value="0"
+                                                    id="inputTotalDescuento">
+                                                <span id="totalDescuento">0</span>
+                                                <span>{{$empresa->moneda->simbolo}}</span>
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th colspan="5">
                                                 {{$empresa->abreviatura_impuesto}} ({{$empresa->porcentaje_impuesto}})%
                                             </th>
                                             <th colspan="2">
@@ -197,7 +213,7 @@
                                             </th>
                                         </tr>
                                         <tr>
-                                            <th colspan="4">Total</th>
+                                            <th colspan="5">Total</th>
                                             <th colspan="2">
                                                 <input type="hidden" name="total" value="0" id="inputTotal">
                                                 <span id="total">0</span>
@@ -319,6 +335,8 @@
     let subtotal = [];
     let sumas = 0;
     let igv = 0;
+    let descuentosArray = [];
+    let totalDescuento = 0;
     let total = 0;
     let arrayIdProductos = [];
 
@@ -340,6 +358,7 @@
         let cantidad = $('#cantidad').val();
         let precioVenta = $('#precio').val();
         let stock = $('#stock').val();
+        let descuento = $('#descuento').val();
 
         //Validaciones 
         //1.Para que los campos no esten vacíos
@@ -355,8 +374,11 @@
                     if (!arrayIdProductos.includes(idProducto)) {
 
                         //Calcular valores
-                        subtotal[cont] = round(cantidad * precioVenta);
+                        subtotal[cont] = round(cantidad * precioVenta - descuento);
+                        descuentosArray[cont] = parseFloat(descuento) || 0;
                         sumas = round(sumas + subtotal[cont]);
+                        totalDescuento = round(descuentosArray.reduce((a, b) => a + b, 0));
+
                         igv = round(sumas / 100 * impuesto);
                         total = round(sumas + igv);
 
@@ -366,6 +388,7 @@
                             '<td>' + presentacioneProducto + '</td>' +
                             '<td><input type="hidden" name="arraycantidad[]" value="' + cantidad + '">' + cantidad + '</td>' +
                             '<td><input type="hidden" name="arrayprecioventa[]" value="' + precioVenta + '">' + precioVenta + '</td>' +
+                            '<td><input type="hidden" name="arraydescuento[]" value="' + descuento + '">' + descuento + '</td>' +
                             '<td>' + subtotal[cont] + '</td>' +
                             '<td><button class="btn btn-danger" type="button" onClick="eliminarProducto(' + cont + ',' + idProducto + ')"><i class="fa-solid fa-trash"></i></button></td>' +
                             '</tr>';
@@ -378,11 +401,13 @@
 
                         //Mostrar los campos calculados
                         $('#sumas').html(sumas);
+                        $('#totalDescuento').html(totalDescuento);
                         $('#igv').html(igv);
                         $('#total').html(total);
                         $('#inputImpuesto').val(igv);
                         $('#inputTotal').val(total);
                         $('#inputSubtotal').val(sumas);
+                        $('#inputTotalDescuento').val(totalDescuento);
 
                         //Agregar el id del producto al arreglo
                         arrayIdProductos.push(idProducto);
@@ -407,16 +432,20 @@
     function eliminarProducto(indice, idProducto) {
         //Calcular valores
         sumas -= round(subtotal[indice]);
+        descuentosArray[indice] = 0;
+        totalDescuento = round(descuentosArray.reduce((a, b) => a + b, 0));
         igv = round(sumas / 100 * impuesto);
         total = round(sumas + igv);
 
         //Mostrar los campos calculados
         $('#sumas').html(sumas);
+        $('#totalDescuento').html(totalDescuento);
         $('#igv').html(igv);
         $('#total').html(total);
         $('#inputImpuesto').val(igv);
         $('#inputTotal').val(total);
         $('#inputSubtotal').val(sumas);
+        $('#inputTotalDescuento').val(totalDescuento);
 
         //Eliminar el fila de la tabla
         $('#fila' + indice).remove();
@@ -448,16 +477,20 @@
         subtotal = [];
         sumas = 0;
         igv = 0;
+        descuentosArray = [];
+        totalDescuento = 0;
         total = 0;
         arrayIdProductos = [];
 
         //Mostrar los campos calculados
         $('#sumas').html(sumas);
+        $('#totalDescuento').html(totalDescuento);
         $('#igv').html(igv);
         $('#total').html(total);
         $('#inputImpuesto').val(igv);
         $('#inputTotal').val(total);
         $('#inputSubtotal').val(sumas);
+        $('#inputTotalDescuento').val(totalDescuento);
 
         limpiarCampos();
         disableButtons();
@@ -479,6 +512,8 @@
         $('#cantidad').val('');
         $('#precio').val('');
         $('#stock').val('');
+        $('#descuento').val('');
+
     }
 
     function showModal(message, icon = 'error') {

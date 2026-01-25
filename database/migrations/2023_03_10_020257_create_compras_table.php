@@ -20,7 +20,7 @@ return new class extends Migration
             $table->foreignId('proveedore_id')->constrained()->cascadeOnDelete();
             $table->string('numero_comprobante')->nullable()->unique();
             $table->string('comprobante_path', 2048)->nullable();
-            $table->enum('metodo_pago', ['EFECTIVO', 'TARJETA']);
+            $table->enum('metodo_pago', ['1', '2', '3', '4', '5', '6', '7', '8']);
             $table->dateTime('fecha_hora');
             $table->decimal('impuesto')->unsigned();
             $table->decimal('subtotal')->unsigned();

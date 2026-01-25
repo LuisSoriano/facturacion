@@ -124,6 +124,7 @@
                     <th>Unidad</th>
                     <th>Descripción</th>
                     <th>Neto</th>
+                    <th>Descuento</th>
                     <th>Total</th>
                 </tr>
             </thead>
@@ -134,7 +135,8 @@
                     <td>{{$detalle->presentacione->sigla}}</td>
                     <td>{{$detalle->nombre}}</td>
                     <td>{{$detalle->pivot->precio_venta}}</td>
-                    <td>{{$detalle->pivot->cantidad * $detalle->pivot->precio_venta}}</td>
+                    <td>{{$detalle->pivot->descuento ?? 0}}</td>
+                    <td>{{($detalle->pivot->cantidad * $detalle->pivot->precio_venta) - ($detalle->pivot->descuento ?? 0)}}</td>
                 </tr>
                 @endforeach
             </tbody>
@@ -142,6 +144,7 @@
 
         <div class="datos">
             <div><strong>Subtotal:</strong> {{$venta->subtotal}} {{$empresa->moneda->simbolo}}</div>
+            <div><strong>Descuento Total:</strong> {{$venta->total_descuento ?? 0}} {{$empresa->moneda->simbolo}}</div>
             <div><strong>{{$empresa->abreviatura_impuesto}}:</strong> {{$venta->impuesto}} {{$empresa->moneda->simbolo}}</div>
             <div><strong>Total:</strong> {{$venta->total}} {{$empresa->moneda->simbolo}}</div>
             <div><strong>Modalidad de Pago:</strong> {{$venta->metodo_pago}}</div>

@@ -9,8 +9,10 @@ use App\Models\Cliente;
 use App\Models\Documento;
 use App\Models\Persona;
 use App\Services\ActivityLogService;
+use App\Services\VerificacionNitService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -79,7 +81,8 @@ class clienteController extends Controller
     {
         $cliente->load('persona.documento');
         $documentos = Documento::all();
-        return view('cliente.edit', compact('cliente', 'documentos'));
+        $optionsTipoPersona = TipoPersonaEnum::cases();
+        return view('cliente.edit', compact('cliente', 'documentos', 'optionsTipoPersona'));
     }
 
     /**
@@ -119,6 +122,35 @@ class clienteController extends Controller
         } catch (Throwable $e) {
             Log::error('Error al eliminar/restaurar al cliente', ['error' => $e->getMessage()]);
             return redirect()->route('clientes.index')->with('error', 'Ups, algo falló');
+        }
+    }
+
+    /**
+     * Verificar NIT en SIAT
+     */
+    public function verificarNit(): JsonResponse
+    {
+        try {
+            $nit = request()->input('nit');
+
+            if (!$nit) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'NIT requerido'
+                ], 400);
+            }
+
+            $servicio = new VerificacionNitService();
+            $resultado = $servicio->verificarNit($nit);
+
+            return response()->json($resultado);
+        } catch (Throwable $e) {
+            Log::error('Error al verificar NIT', ['error' => $e->getMessage()]);
+            return response()->json([
+                'valido' => false,
+                'mensaje' => 'ERROR',
+                'descripcion' => 'Error al verificar NIT: ' . $e->getMessage()
+            ]);
         }
     }
 }

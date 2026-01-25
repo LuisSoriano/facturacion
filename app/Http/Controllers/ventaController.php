@@ -102,6 +102,7 @@ class ventaController extends Controller
             $arrayProducto_id = $request->get('arrayidproducto');
             $arrayCantidad = $request->get('arraycantidad');
             $arrayPrecioVenta = $request->get('arrayprecioventa');
+            $arrayDescuento = $request->get('arraydescuento') ?? [];
 
             //2.Realizar el llenado
             $siseArray = count($arrayProducto_id);
@@ -112,6 +113,7 @@ class ventaController extends Controller
                     $arrayProducto_id[$cont] => [
                         'cantidad' => $arrayCantidad[$cont],
                         'precio_venta' => $arrayPrecioVenta[$cont],
+                        'descuento' => $arrayDescuento[$cont] ?? 0,
                     ]
                 ]);
 

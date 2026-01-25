@@ -16,7 +16,7 @@ class KardexServicio extends Model
 
     protected $casts = ['tipo_transaccion' => TipoTransaccionEnum::class];
 
-    private const MARGEN_GANANCIA = 0.2;
+    private const MARGEN_GANANCIA = 0;
 
     public function servicio(): BelongsTo
     {

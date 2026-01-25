@@ -19,10 +19,11 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('comprobante_id')->constrained()->cascadeOnDelete();
             $table->string('numero_comprobante')->unique();
-            $table->enum('metodo_pago', ['EFECTIVO', 'TARJETA']);
+            $table->enum('metodo_pago', ['1', '2', '3', '4', '5', '6', '7', '8']);
             $table->dateTime('fecha_hora');
             $table->decimal('subtotal', 8, 2, true);
             $table->decimal('impuesto', 8, 2, true);
+            $table->decimal('total_descuento', 8, 2)->unsigned()->default(0);
             $table->decimal('total', 8, 2, true);
             $table->decimal('monto_recibido', 8, 2, true);
             $table->decimal('vuelto_entregado', 8, 2, true);

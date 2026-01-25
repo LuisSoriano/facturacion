@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Caracteristica;
 use App\Models\Categoria;
 use App\Models\Cliente;
+use App\Models\ConfiguracionSiat;
 use App\Models\Documento;
 use App\Models\Marca;
 use App\Models\Persona;
@@ -29,6 +30,9 @@ class TestDataSeeder extends Seeder
             'Nike',
             'Adidas',
             'Puma',
+            'Samsung',
+            'Tecno',
+            'Apple',
             'Reebok'
         ];
 
@@ -220,7 +224,7 @@ class TestDataSeeder extends Seeder
                     'categoria_id' => $categorias[$i % count($categorias)]->id,
                     'marca_id' => $marcas[$i % count($marcas)]->id,
                     'presentacione_id' => $presentaciones[$i % count($presentaciones)]->id,
-                    'precio' => rand(1500, 75000) / 100,
+                    'precio' => null,
                     'descripcion' => 'Producto de prueba: ' . $nombre
                 ]
             );
@@ -303,6 +307,28 @@ class TestDataSeeder extends Seeder
             $user->syncRoles([$userData['rol']]);
         }
 
+        // ============ CONFIGURACIÓN SIAT ============
+        ConfiguracionSiat::firstOrCreate(
+            ['empresa_id' => 1],
+            [
+                'empresa_id' => 1,
+                'nit' => '1016503025',
+                'razon_social' => 'INSTITUTO NACIONAL DE SALUD OCUPACIONAL',
+                'codigo_sistema' => '352D933474D1DC429A66',
+                'nombre_sistema' => 'SIFEL-INSO',
+                'codigo_ambiente' => 2,
+                'codigo_modalidad' => 1,
+                'codigo_sucursal' => 0,
+                'codigo_punto_venta' => 0,
+                'cuis' => 'C8FBA7CC',
+                'token_api' => 'TokenApi eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnNvLmltcHVlc3Rvcy5sYXBhekBnbWFpbC5jb20iLCJjb2RpZ29TaXN0ZW1hIjoiMzUyRDkzMzQ3NEQxREM0MjlBNjYiLCJuaXQiOiJINHNJQUFBQUFBQUFBRE0wTURRek5UQTJNRElGQUR5T19rQUtBQUFBIiwiaWQiOjUzMTI3NDksImV4cCI6MTc5ODc0NTQ2OCwiaWF0IjoxNzY3NDgzMDM4LCJuaXREZWxlZ2FkbyI6MTAxNjUwMzAyNSwic3Vic2lzdGVtYSI6IlNGRSJ9.SAY8WURUVkwJorCkHFnBsNEiHYGAAOLfQE33-UBFsZu1r3oUhq8HEDAj42ZLJScmw_EnyhKM9VzAxLOzFM2VvQ',
+                'url_sincronizacion' => 'https://pilotosiatservicios.impuestos.gob.bo/v2/FacturacionSincronizacion?wsdl',
+                'url_operaciones' => 'https://pilotosiatservicios.impuestos.gob.bo/v2/FacturacionOperaciones?wsdl',
+                'url_codigos' => 'https://pilotosiatservicios.impuestos.gob.bo/v2/FacturacionCodigos?wsdl',
+                'url_facturacion' => 'https://pilotosiatservicios.impuestos.gob.bo/v2/ServicioFacturacionCompraVenta?wsdl'
+            ]
+        );
+
         echo "\n✓ Datos de prueba creados exitosamente:\n";
         echo "  ✓ 4 Marcas\n";
         echo "  ✓ 10 Presentaciones\n";
@@ -310,6 +336,7 @@ class TestDataSeeder extends Seeder
         echo "  ✓ 100 Productos\n";
         echo "  ✓ 4 Proveedores\n";
         echo "  ✓ 3 Usuarios adicionales (2 vendedores, 1 almacenero)\n";
-        echo "  ✓ 2 Roles adicionales (vendedor, almacenero)\n\n";
+        echo "  ✓ 2 Roles adicionales (vendedor, almacenero)\n";
+        echo "  ✓ Configuración SIAT\n\n";
     }
 }

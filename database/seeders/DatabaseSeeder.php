@@ -21,6 +21,6 @@ class DatabaseSeeder extends Seeder
         $this->call(UbicacioneSeeder::class);
         $this->call(MonedaSeeder::class);
         $this->call(EmpresaSeeder::class);
-        $this->call(TestDataSeeder::class);
+        // $this->call(TestDataSeeder::class); // Descomenta para cargar datos de prueba
     }
 }
